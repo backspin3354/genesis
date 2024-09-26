@@ -38,18 +38,22 @@
         extensions = [ "rust-src" "rust-analyzer" ];
       };
       devCraneLib = (crane.mkLib pkgs).overrideToolchain devToolchain;
+
+      buildDeps = with pkgs; [  
+        clang
+        mold
+      ];
+
+      runtimeDeps = with pkgs; [
+        # TODO
+      ];
     
       craneArgs = {
         src = craneLib.cleanCargoSource ./.;
         strictDeps = true;
 
-        nativeBuildInputs = [
-          # TODO
-        ];
-        
-        buildInputs = [
-          # TODO
-        ];
+        nativeBuildInputs = buildDeps;          
+        buildInputs = runtimeDeps;
       };
 
       package = craneLib.buildPackage (craneArgs // {
@@ -59,7 +63,9 @@
       packages.default = package;
       
       devShells.default = devCraneLib.devShell {
-        # TODO
+        packages = [
+          # TODO
+        ] ++ buildDeps;
       };
     };
   };
