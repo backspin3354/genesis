@@ -27,6 +27,7 @@
 
     perSystem = {
       system,
+      lib,
       ...
     }: let 
       pkgs = nixpkgs.legacyPackages.${system}.extend rust.overlays.default;
@@ -39,33 +40,39 @@
       };
       devCraneLib = (crane.mkLib pkgs).overrideToolchain devToolchain;
 
-      buildDeps = with pkgs; [  
+      buildDeps = with pkgs; [
+        makeWrapper
         clang
         mold
       ];
 
       runtimeDeps = with pkgs; [
-        # TODO
+        wayland
+        libxkbcommon
       ];
-    
+          
       craneArgs = {
         src = craneLib.cleanCargoSource ./.;
         strictDeps = true;
-
-        nativeBuildInputs = buildDeps;          
-        buildInputs = runtimeDeps;
+        nativeBuildInputs = buildDeps;
       };
 
       package = craneLib.buildPackage (craneArgs // {
         cargoArtifacts = craneLib.buildDepsOnly craneArgs;
+        postInstall = ''
+          wrapProgram "$out/bin/genesis"\
+            --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath runtimeDeps}"
+        '';
       });
     in {
       packages.default = package;
-      
+            
       devShells.default = devCraneLib.devShell {
         packages = [
           # TODO
         ] ++ buildDeps;
+
+        LD_LIBRARY_PATH = "${lib.makeLibraryPath runtimeDeps}";
       };
     };
   };
