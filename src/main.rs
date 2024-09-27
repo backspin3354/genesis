@@ -21,7 +21,24 @@ impl ApplicationHandler for App {
         let window = event_loop.create_window(attributes).unwrap();
         let window = Arc::new(window);
 
-        let renderer = gfx::Renderer::new(window.clone());
+        let mut renderer = gfx::Renderer::new(window.clone());
+        renderer.load(
+            &[
+                gfx::Vertex {
+                    position: glam::Vec3::new(0.0, 0.5, 0.0),
+                    color: glam::Vec3::new(1.0, 0.0, 0.0),
+                },
+                gfx::Vertex {
+                    position: glam::Vec3::new(0.5, -0.5, 0.0),
+                    color: glam::Vec3::new(0.0, 1.0, 0.0),
+                },
+                gfx::Vertex {
+                    position: glam::Vec3::new(-0.5, -0.5, 0.0),
+                    color: glam::Vec3::new(0.0, 0.0, 1.0),
+                },
+            ],
+            &[0, 1, 2, 0],
+        );
 
         self.window = Some(window);
         self.renderer = Some(renderer);
@@ -30,7 +47,7 @@ impl ApplicationHandler for App {
     fn window_event(
         &mut self,
         event_loop: &ActiveEventLoop,
-        _window_id: WindowId,
+        window_id: WindowId,
         event: WindowEvent,
     ) {
         match event {
@@ -50,6 +67,10 @@ impl ApplicationHandler for App {
         if let Some(renderer) = self.renderer.as_mut() {
             renderer.draw();
         }
+    }
+
+    fn exiting(&mut self, event_loop: &ActiveEventLoop) {
+        self.renderer = None;
     }
 }
 

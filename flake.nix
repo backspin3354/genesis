@@ -52,9 +52,16 @@
         libglvnd # GL
         vulkan-loader # Vulkan
       ];
-          
-      craneArgs = {
-        src = craneLib.cleanCargoSource ./.;
+
+      craneArgs = let
+        wgslFilter = path: _type: builtins.match ".*wgsl$" path != null;
+        filterCargoAndWgslSources = path: type:
+          (wgslFilter path type) || (craneLib.filterCargoSources path type);
+      in {
+        src = lib.cleanSourceWith {
+          src = lib.cleanSource ./.;
+          filter = filterCargoAndWgslSources;
+        };
         strictDeps = true;
         nativeBuildInputs = buildDeps;
       };
