@@ -49,6 +49,8 @@
       runtimeDeps = with pkgs; [
         wayland
         libxkbcommon
+        libglvnd # GL
+        vulkan-loader # Vulkan
       ];
           
       craneArgs = {
