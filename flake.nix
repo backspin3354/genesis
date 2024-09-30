@@ -37,19 +37,8 @@
 
       toolchain = pkgs.rust-bin.stable.latest.minimal;      
       craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
-
-      devToolchain = pkgs.rust-bin.stable.latest.default.override {
-        extensions = [ "rust-src" "rust-analyzer" ];
-      };
-      devCraneLib = (crane.mkLib pkgs).overrideToolchain devToolchain;
-
-      buildDeps = with pkgs; [
-        makeWrapper
-        clang
-        mold
-      ];
-
-      runtimeDeps = with pkgs; [
+      
+      runtimeDependencies = with pkgs; [
         wayland
         libxkbcommon
         libglvnd # GL
@@ -67,25 +56,38 @@
           ];
         };
         strictDeps = true;
-        nativeBuildInputs = buildDeps;
+
+        # Dependencies used during build
+        nativeBuildInputs = with pkgs; [
+          pkg-config
+          autoPatchelfHook
+          clang
+          mold
+        ];
+
+        # Dependencies used during build AND during runtime
+        buildInputs = with pkgs; [
+          stdenv.cc.cc.lib # libgcc_s.so.1
+        ];
+      
+        # Dependencies used during runtime
+        inherit runtimeDependencies;
       };
 
       package = craneLib.buildPackage (craneArgs // {
         cargoArtifacts = craneLib.buildDepsOnly craneArgs;
-        postInstall = ''
-          wrapProgram "$out/bin/genesis"\
-            --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath runtimeDeps}"
-        '';
       });
     in {
       packages.default = package;
             
-      devShells.default = devCraneLib.devShell {
-        packages = [
-          # TODO
-        ] ++ buildDeps;
-
-        LD_LIBRARY_PATH = "${lib.makeLibraryPath runtimeDeps}";
+      devShells.default = let 
+        toolchain = pkgs.rust-bin.stable.latest.default.override {
+          extensions = [ "rust-src" "rust-analyzer" ];
+        };
+        craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
+      in craneLib.devShell {
+        LD_LIBRARY_PATH = "${lib.makeLibraryPath runtimeDependencies}";
+        inputsFrom = [ package ];
       };
     };
   };
