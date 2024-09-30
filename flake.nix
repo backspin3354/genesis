@@ -11,6 +11,8 @@
     
     rust.url = "github:oxalica/rust-overlay";
     rust.inputs.nixpkgs.follows = "nixpkgs";
+
+    filter.url = "github:numtide/nix-filter";
   };
 
   outputs = inputs @ {
@@ -18,6 +20,7 @@
     parts,
     crane,
     rust,
+    filter,
     ...
   }:
   parts.lib.mkFlake { inherit inputs; } {
@@ -53,14 +56,15 @@
         vulkan-loader # Vulkan
       ];
 
-      craneArgs = let
-        wgslFilter = path: _type: builtins.match ".*wgsl$" path != null;
-        filterCargoAndWgslSources = path: type:
-          (wgslFilter path type) || (craneLib.filterCargoSources path type);
-      in {
-        src = lib.cleanSourceWith {
-          src = lib.cleanSource ./.;
-          filter = filterCargoAndWgslSources;
+      craneArgs = {
+        src = filter.lib.filter {
+          root = ./.;
+          include = [
+            "./.cargo"
+            "./src"
+            "./Cargo.toml"
+            "./Cargo.lock"
+          ];
         };
         strictDeps = true;
         nativeBuildInputs = buildDeps;
