@@ -55,6 +55,20 @@ impl ApplicationHandler for App {
             ],
             &[0, 1, 2, 0],
         );
+        renderer.load_billboards(&[
+            gfx::Billboard {
+                position: glam::Vec3::new(0.0, 0.0, 0.0),
+                color: glam::Vec3::X,
+            },
+            gfx::Billboard {
+                position: glam::Vec3::new(4.0, 0.0, 4.0),
+                color: glam::Vec3::Y,
+            },
+            gfx::Billboard {
+                position: glam::Vec3::new(2.0, 0.0, 8.0),
+                color: glam::Vec3::Z,
+            },
+        ]);
 
         self.window = Some(window);
         self.renderer = Some(renderer);
