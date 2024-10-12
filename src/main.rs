@@ -1,10 +1,8 @@
-use std::sync::Arc;
-
 use winit::{
     application::ApplicationHandler,
     event::WindowEvent,
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
-    window::{Window, WindowAttributes, WindowId},
+    window::WindowId,
 };
 
 mod state;
